@@ -20,6 +20,9 @@ public class ExtinguisherController : MonoBehaviour
     [SerializeField] private MouseTrigger nozzleDragTrigger;
     
     [SerializeField] private ParticleSystem particles;
+
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip valveSfx;
     
     [SerializeField] private float capacity = 10.0f;
     [SerializeField] private float boltAnimDuration = 0.1f;
@@ -62,6 +65,7 @@ public class ExtinguisherController : MonoBehaviour
         if(capacity > 0)
         {
             particles.Play();
+            audioSource.Play();
             
             //re-enable the capacity reduction Coroutine
             if (_changeCapacityRoutine != null) StopCoroutine(_changeCapacityRoutine);
@@ -83,7 +87,8 @@ public class ExtinguisherController : MonoBehaviour
     public void DisableExtinguisher()
     {
         particles.Stop();
-        
+        audioSource.Stop();
+
         //disable the capacity reduction Coroutine
         if (_changeCapacityRoutine != null) StopCoroutine(_changeCapacityRoutine);
         
@@ -115,6 +120,7 @@ public class ExtinguisherController : MonoBehaviour
 
     private IEnumerator OpenValve(float angle)
     {
+        audioSource.PlayOneShot(valveSfx);
         //valve open/close animation
         while (Math.Abs(valve.localEulerAngles.z - angle) > .1f)
         {
@@ -166,6 +172,7 @@ public class ExtinguisherController : MonoBehaviour
         if (capacity <= 0)
         {
             particles.Stop();
+            audioSource.Stop();
             if (_currentFireZoneTrigger != null)
             {
                 _currentFireZoneTrigger.EndTakeDamage();

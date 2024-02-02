@@ -7,6 +7,7 @@ public class FireController : MonoBehaviour
 
     [SerializeField] private ParticleSystem flamesParticles;
     [SerializeField] private Light fireLight;
+    [SerializeField] private AudioSource audioSource;
     
     [SerializeField] private float firePower = 6.0f;
     [SerializeField] private float recoveryMultiplier = 0.5f;
@@ -17,7 +18,8 @@ public class FireController : MonoBehaviour
     public float GetFirePower => firePower;
     public float MaxFirePower { get; private set; }
 
-    private float _maxLightIntensity;    
+    private float _maxVolume;
+    private float _maxLightIntensity;
     private float _damageMultiplier;
     private bool _extinguishedFire;
     private bool _getDamage;
@@ -29,6 +31,7 @@ public class FireController : MonoBehaviour
     private void Start()
     {
         MaxFirePower = firePower;
+        _maxVolume = audioSource.volume;
         _maxLightIntensity = fireLight.intensity;
     }
 
@@ -45,6 +48,8 @@ public class FireController : MonoBehaviour
         firePower += (_getDamage ? -_damageMultiplier : recoveryMultiplier) * Time.deltaTime;
         firePower = Math.Clamp(firePower, 0, MaxFirePower);
 
+        #region SetFireParameters
+
         //EmissionRate
         float emissionRate = CalculateRelativeValue(firePower, MaxFirePower, minEmission, maxEmission);
         ParticleSystem.EmissionModule emission = flamesParticles.emission;
@@ -57,11 +62,17 @@ public class FireController : MonoBehaviour
         //Light
         fireLight.intensity = CalculateRelativeValue(firePower, MaxFirePower, 0, _maxLightIntensity);
         
+        //volume
+        audioSource.volume = CalculateRelativeValue(firePower, MaxFirePower, 0, _maxVolume);
+
+        #endregion
+        
         //extinguishedFire
         if (firePower <= 0)
         {
             _extinguishedFire = true;
             flamesParticles.Stop();
+            audioSource.Stop();
         }
     }
 
